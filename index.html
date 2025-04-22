@@ -4,16 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>オタクバスツアーin金沢</title>
-
-  <!-- Noto Sans JP フォント -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
       margin: 0;
-      background-color: #f3f4f6; /* やわらかい背景色 */
+      background-color: #f3f4f6;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -55,6 +52,13 @@
       outline: 2px solid rgba(0,0,0,0.15);
     }
 
+    #progress {
+      text-align: center;
+      margin: 8px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
     .container {
       flex: 1;
       display: flex;
@@ -71,78 +75,75 @@
     }
 
     .mission-item {
-    background: #fff;
-    margin-bottom: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    overflow: hidden;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      overflow: hidden;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
 
-    .mission-item:hover {
-      transform: translateY(-2px);
+    .mission-item span {
+      word-break: break-word;
+      white-space: normal;
+      max-width: 100%;
+    }
+
+    .checkmark {
+      margin-left: 4px;
+      min-width: 28px;
+      text-align: right;
     }
 
     .mission-item.checked {
       background-color: #e0ffe0;
     }
 
-    .mission-item span {
-    word-break: break-word;
-    white-space: normal;
-    max-width: 100%;
+    .detail {
+      padding: 14px;
+      font-size: 14px;
+      border-top: 1px solid #ccc;
+      background: #ffffff;
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
     }
 
-    .detail {
-      padding: 10px;
-      font-size: 14px;
-      height: 100px;
-      border-top: 1px solid #ccc;
-    }
-    
     #map {
       flex: 1;
       margin: 12px;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      height: 100%;
+      min-height: 300px;
     }
 
-    #progress {
-      text-align: center;
-      margin: 8px 0;
-      font-size: 14px;
-      color: #333;
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .list {
+        width: 100%;
+        height: 20vh;
+        border-bottom: 1px solid #ccc;
+      }
+      #map {
+        height: 80vh !important;
+        margin: 0;
+        border-radius: 0;
+      }
+      .mission-item {
+        flex-wrap: wrap;
+      }
+      .mission-item span {
+        max-width: 100%;
+      }
     }
-
-  @media screen and (max-width: 768px) {
-    .container {
-      flex-direction: column;
-    }
-    .list {
-      width: 100%;
-      height: 20vh;
-      border-bottom: 1px solid #ccc;
-    }
-    #map {
-      height: 80vh !important;
-      margin: 0;
-      border-radius: 0;
-    }
-    .mission-item {
-      flex-wrap: wrap;
-    }
-    .mission-item span {
-      max-width: 100%;
-    }
-  }
-
   </style>
 </head>
 <body>
@@ -165,8 +166,7 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    // ↓ あなたのミッションデータをここに貼ってください
-    const allMissions = {
+   const allMissions = {
       easy: [
         {
           title: "1. 鼓門で班全員で写真撮影",
@@ -566,12 +566,12 @@
     }
 
     function renderList() {
-      
-      markers.forEach(marker => { if (marker) map.removeLayer(marker); });
-      markers = [];
       const missions = allMissions[currentDifficulty];
       listEl.innerHTML = "";
       detailEl.innerHTML = "ミッションを選択してください。";
+      markers.forEach(marker => { if (marker) map.removeLayer(marker); });
+      markers = [];
+
       missions.forEach((mission, index) => {
         const item = document.createElement("div");
         item.className = "mission-item";
@@ -581,15 +581,13 @@
         title.textContent = mission.title;
         title.style.flex = "1";
         title.onclick = () => {
-         detailEl.innerHTML = `<h2>${mission.title}</h2><p>${mission.detail}</p>`;
-         if (mission.lat !== undefined && mission.lng !== undefined) {
-          map.setView([mission.lat, mission.lng], 16);
-          setTimeout(() => {
-           map.invalidateSize();
-          }, 200); // ← スマホでのチラつき対策！
-          if (markers[index]) markers[index].openPopup();
-  }
-};
+          detailEl.innerHTML = `<h2>${mission.title}</h2><p>${mission.detail}</p>`;
+          if (mission.lat !== undefined && mission.lng !== undefined) {
+            map.setView([mission.lat, mission.lng], 16);
+            setTimeout(() => map.invalidateSize(), 200);
+            if (markers[index]) markers[index].openPopup();
+          }
+        };
 
         const check = document.createElement("span");
         check.className = "checkmark";
@@ -606,9 +604,9 @@
         listEl.appendChild(item);
 
         if (mission.lat !== undefined && mission.lng !== undefined) {
-      const marker = L.marker([mission.lat, mission.lng])
-            .addTo(map)
-            .bindPopup(`<b>${mission.title}</b><br>${mission.detail}`);
+          const marker = L.marker([mission.lat, mission.lng])
+            .bindPopup(`<b>${mission.title}</b><br>${mission.detail}`)
+            .addTo(map);
           markers.push(marker);
         } else {
           markers.push(null);
@@ -616,7 +614,6 @@
       });
 
       updateProgress();
-      updateTotalProgress();
     }
 
     function updateProgress() {
@@ -624,10 +621,9 @@
       const total = missions.length;
       const done = missions.filter(m => m.checked).length;
       const percent = total === 0 ? 0 : Math.round((done / total) * 100);
-      const progressEl = document.getElementById("progress");
-      progressEl.textContent = `達成率：${done} / ${total}（${percent}%）`;
+      document.getElementById("progress").textContent = `達成率：${done} / ${total}（${percent}%）`;
     }
-    
+
     function saveProgress() {
       localStorage.setItem('missions', JSON.stringify(allMissions));
     }
