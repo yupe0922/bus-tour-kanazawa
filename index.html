@@ -4,77 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>オタクバスツアーin金沢</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     body {
-      font-family: 'Noto Sans JP', sans-serif;
+      font-family: 'Noto Serif JP', serif;
       margin: 0;
-      background-color: #f3f4f6;
+      color: #3e3e3e;
       display: flex;
       flex-direction: column;
       height: 100vh;
+
+      /* ✅ 和紙風テクスチャ背景 */
+      background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-repeat: repeat;
+      background-size: auto;
     }
 
     .topbar {
       padding: 12px;
       text-align: center;
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: #fffdf6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .topbar button {
-      margin: 6px;
-      padding: 8px 16px;
-      font-size: 18px;
-      border: none;
-      border-radius: 12px;
-      color: #fff;
-      width: 160px;
-      text-align: center;
-      transition: background-color 0.3s ease;
-      cursor: pointer;
-      text-shadow:
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
-    }
+  width: 150px;        /* 全ボタンの幅を固定 */
+  height: 40px;        /* 全ボタンの高さを統一 */
+  padding: 0;          /* 上下余白をなくして中央に揃える */
+  line-height: 40px;   /* テキストを縦中央に揃える */
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  margin: 6px 6px;
+}
 
-.topbar button.easy {
-  background: linear-gradient(135deg, #64b5f6, #42a5f5);
-  box-shadow: 0 2px 6px rgba(100, 181, 246, 0.4);
+    .topbar button.easy {
+  background: linear-gradient(135deg, #64b5f6, #42a5f5); /* 水色 */
+  color: #000;
 }
 
 .topbar button.normal {
-  background: linear-gradient(135deg, #81c784, #66bb6a);
-  box-shadow: 0 2px 6px rgba(129, 199, 132, 0.4);
+  background: linear-gradient(135deg, #81c784, #66bb6a); /* 緑 */
+  color: #000;
 }
 
 .topbar button.hard {
-  background: linear-gradient(135deg, #fff176, #fbc02d);
-  box-shadow: 0 2px 6px rgba(255, 241, 118, 0.4);
+  background: linear-gradient(135deg, #fff176, #fbc02d); /* 黄色 */
+  color: #000;
 }
 
 .topbar button.extra {
-  background: linear-gradient(135deg, #e57373, #ef5350);
-  box-shadow: 0 2px 6px rgba(239, 83, 80, 0.4);
+  background: linear-gradient(135deg, #e57373, #ef5350); /* 赤 */
+  color: #000;
 }
 
 .topbar button.ultra {
-  background: linear-gradient(135deg, #9575cd, #7e57c2);
-  box-shadow: 0 2px 6px rgba(126, 87, 194, 0.4);
+  background: linear-gradient(135deg, #9575cd, #7e57c2); /* 藍紫 */
+  color: #000;
 }
 
-.topbar button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+
+    .topbar button:hover {
+      background: #c0392b;
+      color: #fff;
+    }
+
+    .topbar button.active {
+      background: #e0e0e0 !important;
+      border: 2px solid #777 !important;
+      color: #000 !important;
+    }
+
+    .mission-link {
+  display: inline-block;
+  margin: 6px;
+  padding: 8px 16px;
+  font-size: 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #aaa;
+  transition: background-color 0.2s ease;
 }
-/* ✅ 選択中のボタンデザイン */
-.topbar button.active {
-  background: #e0e0e0 !important; /* 灰色背景 */
-  color: #ffffff !important;         /* 黒文字 */
-  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15);
+
+.mission-link:hover {
+  background: #e0e0e0;
 }
 
 
@@ -82,7 +99,6 @@
       text-align: center;
       margin: 8px 0;
       font-size: 14px;
-      color: #333;
     }
 
     .container {
@@ -96,56 +112,49 @@
       max-width: 400px;
       border-right: 1px solid #ccc;
       overflow-y: auto;
-      padding: 12px;
-      background-color: #f9fafb;
+      padding: 10px;
+      background-color: #fefefe;
     }
 
     .mission-item {
       background: #fff;
-      margin-bottom: 10px;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #dcdcdc;
+      box-shadow: 0 2px 3px rgba(0,0,0,0.05);
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.2s ease;
-      overflow: hidden;
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-
-    .mission-item span {
-      word-break: break-word;
-      white-space: normal;
-      max-width: 100%;
-    }
-
-    .checkmark {
-      margin-left: 4px;
-      min-width: 28px;
-      text-align: right;
     }
 
     .mission-item.checked {
       background-color: #e0ffe0;
     }
 
+    .checkmark {
+      margin-left: 6px;
+      min-width: 28px;
+      text-align: right;
+    }
+
     .detail {
-      padding: 14px;
+      padding: 12px;
       font-size: 14px;
       border-top: 1px solid #ccc;
-      background: #ffffff;
-      box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+      background: #fffdf8;
+    }
+
+    #detail {
+      display: none;
     }
 
     #map {
       flex: 1;
-      margin: 12px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      height: 100%;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
       min-height: 300px;
     }
 
@@ -155,30 +164,30 @@
       }
       .list {
         width: 100%;
-        height: 20vh;
+        height: 30vh;
+        border-right: none;
         border-bottom: 1px solid #ccc;
       }
       #map {
-        height: 80vh !important;
+        height: 70vh !important;
         margin: 0;
         border-radius: 0;
-      }
-      .mission-item {
-        flex-wrap: wrap;
-      }
-      .mission-item span {
-        max-width: 100%;
       }
     }
   </style>
 </head>
 <body>
   <div class="topbar">
+    <h1 class="site-title">オタクバスツアー in 金沢 </h1>
+
     <button class="easy" onclick="setDifficulty('easy')">イージー</button>
     <button class="normal" onclick="setDifficulty('normal')">ノーマル</button>
     <button class="hard" onclick="setDifficulty('hard')">ハード</button>
     <button class="extra" onclick="setDifficulty('extra')">エクストラ</button>
     <button class="ultra" onclick="setDifficulty('ultra')">ウルトラ</button>
+
+    <a href="missions.html" class="mission-link">▶ ミッションだけ見る</a>
+
   </div>
 
   <div id="progress">達成率：0 / 0（0%）</div>
@@ -192,7 +201,7 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-   const allMissions = {
+    const allMissions = {
       easy: [
         {
           title: "1. 鼓門で班全員で写真撮影",
@@ -487,7 +496,7 @@
         },
         {
           title: "2.他班1班を尾行の上撮影する ※1枚のみ有効 (自班と相手班のどちらも1人以上は映す事)",
-          detail: "場所指定無し",
+          detail: "場所指定はありません",
           checked: false
         },
         {
@@ -541,12 +550,12 @@
         },
         {
           title: "10.寝そセラスと写真を撮る",
-          detail: "場所指定無し",
+          detail: "場所指定はありません",
           checked: false
         },
         {
           title: "11.寝そ泉と写真を撮る",
-          detail: "場所指定無し",
+          detail: "場所指定はありません",
           checked: false
         },
       ],
@@ -567,7 +576,7 @@
         },
         {
           title: "3.友禅ミッションシリーズ全制覇",
-          detail: "場所指定無し",
+          detail: "場所指定はありません",
           checked: false
         },
       ]
@@ -592,55 +601,58 @@
     }
 
     function renderList() {
-      const missions = allMissions[currentDifficulty];
-      listEl.innerHTML = "";
-      detailEl.innerHTML = "ミッションを選択してください。";
-      markers.forEach(marker => { if (marker) map.removeLayer(marker); });
-      markers = [];
+  const missions = allMissions[currentDifficulty];
+  listEl.innerHTML = "";
+  detailEl.innerHTML = "ミッションを選択してください。";
+  markers.forEach(marker => { if (marker) map.removeLayer(marker); });
+  markers = [];
 
-      missions.forEach((mission, index) => {
-        const item = document.createElement("div");
-        item.className = "mission-item";
-        if (mission.checked) item.classList.add("checked");
+  missions.forEach((mission, index) => {
+    const item = document.createElement("div");
+    item.className = "mission-item";
+    if (mission.checked) item.classList.add("checked");
 
-        const title = document.createElement("span");
-        title.textContent = mission.title;
-        title.style.flex = "1";
-        title.onclick = () => {
-          detailEl.innerHTML = `<h2>${mission.title}</h2><p>${mission.detail}</p>`;
-          if (mission.lat !== undefined && mission.lng !== undefined) {
-            map.setView([mission.lat, mission.lng], 16);
-            setTimeout(() => map.invalidateSize(), 200);
-            if (markers[index]) markers[index].openPopup();
-          }
-        };
+    const title = document.createElement("span");
+    title.textContent = mission.title;
+    title.style.flex = "1";
 
-        const check = document.createElement("span");
-        check.className = "checkmark";
-        check.textContent = mission.checked ? "✅" : "⬜";
-        check.onclick = (e) => {
-          e.stopPropagation();
-          mission.checked = !mission.checked;
-          saveProgress();
-          renderList();
-        };
+    // ✅ タイトルクリックで詳細＋マップ表示（緯度なしも対応）
+    title.onclick = () => {
+      detailEl.innerHTML = `<h2>${mission.title}</h2><p>${mission.detail}</p>`;
+      if (markers[index]) {
+        map.setView(markers[index].getLatLng(), 16);
+        markers[index].openPopup();
+      }
+    };
 
-        item.appendChild(title);
-        item.appendChild(check);
-        listEl.appendChild(item);
+    const check = document.createElement("span");
+    check.className = "checkmark";
+    check.textContent = mission.checked ? "✅" : "⬜";
+    check.onclick = (e) => {
+      e.stopPropagation();
+      mission.checked = !mission.checked;
+      saveProgress();
+      renderList();
+    };
 
-        if (mission.lat !== undefined && mission.lng !== undefined) {
-          const marker = L.marker([mission.lat, mission.lng])
-            .bindPopup(`<b>${mission.title}</b><br>${mission.detail}`)
-            .addTo(map);
-          markers.push(marker);
-        } else {
-          markers.push(null);
-        }
-      });
+    item.appendChild(title);
+    item.appendChild(check);
+    listEl.appendChild(item);
 
-      updateProgress();
-    }
+    // ✅ 緯度がない場合でも仮の位置（例：金沢駅）にマーカーを置く
+    const marker = L.marker(
+      (mission.lat !== undefined && mission.lng !== undefined)
+        ? [mission.lat, mission.lng]
+        : [36.578029, 136.648682] // 仮の場所（例：金沢駅）
+    )
+    .bindPopup(`<b>${mission.title}</b><br>${mission.detail || ''}`)
+    .addTo(map);
+
+    markers.push(marker);
+  });
+
+  updateProgress();
+}
 
     function updateProgress() {
       const missions = allMissions[currentDifficulty];
