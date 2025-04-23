@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>地図だけ見る - オタクバスツアーin金沢</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+    .topbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .back-button {
+      background: #ffffffcc;
+      border: 1px solid #ccc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .difficulty-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .difficulty-buttons button {
+      margin: 6px;
+      padding: 6px 12px;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 4px;
+      color: #000;
+      width: 120px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .difficulty-buttons .easy { background: linear-gradient(135deg, #64b5f6, #42a5f5); /* 水色 */
+      color: #000; }
+    .difficulty-buttons .normal { background: linear-gradient(135deg, #81c784, #66bb6a); /* 緑 */
+      color: #000; }
+    .difficulty-buttons .hard { background: linear-gradient(135deg, #fff176, #fbc02d); /* 黄色 */
+      color: #000; }
+    .difficulty-buttons .extra {  background: linear-gradient(135deg, #e57373, #ef5350); /* 赤 */
+      color: #000;}
+    .difficulty-buttons .ultra { background: linear-gradient(135deg, #9575cd, #7e57c2); /* 藍紫 */
+      color: #000; }
+    .difficulty-buttons .all { background-color: #ccc; }
+
+    .dropdown-difficulty {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      padding: 6px;
+      font-size: 15px;
+      border-radius: 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+      .difficulty-buttons { display: none; }
+      .dropdown-difficulty { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html" class="back-button">◀ トップに戻る</a>
+    <div class="difficulty-buttons">
+      <button class="easy" onclick="filterMarkers('easy')">イージー</button>
+      <button class="normal" onclick="filterMarkers('normal')">ノーマル</button>
+      <button class="hard" onclick="filterMarkers('hard')">ハード</button>
+      <button class="extra" onclick="filterMarkers('extra')">エクストラ</button>
+      <button class="ultra" onclick="filterMarkers('ultra')">ウルトラ</button>
+      <button class="all" onclick="filterMarkers('all')">すべて</button>
+    </div>
+  </div>
+
+  <select id="difficulty-select" onchange="filterMarkers(this.value)" class="dropdown-difficulty">
+    <option value="all">すべての難易度</option>
+    <option value="easy">イージー</option>
+    <option value="normal">ノーマル</option>
+    <option value="hard">ハード</option>
+    <option value="extra">エクストラ</option>
+    <option value="ultra">ウルトラ</option>
+  </select>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map', { zoomControl: false }).setView([36.5715, 136.6567], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data © OpenStreetMap contributors'
+    }).addTo(map);
+
+    const allMissions = {
+      easy: [
+        {
+          title: "1. 鼓門で班全員で写真撮影",
+          detail: "",
+          lat: 36.578029,
+          lng: 136.648682,
+          checked: false
+        },
+        {
+          title: "2. 金沢ゲーマーズで各推しとツーショット",
+          detail: "",
+          lat: 36.578487,
+          lng: 136.649400,
+          checked: false
+        },
+        {
+          title:"3.石川県立図書館内部の写真を撮影",
+          detail:"",
+          lat: 36.5487,
+          lng: 136.6808,
+          checked: false
+        },
+        {
+          title: "4.鳥骨鶏ソフト（金澤島鶏庵さん）",
+          detail: "",
+          lat: 36.5730,
+          lng: 136.6652,
+          checked: false
+        },
+        {
+          title: "5.金沢城内の写真を撮影",
+          detail: "",
+          lat: 36.5653,
+          lng: 136.6613,
+          checked: false
+        },
+        {
+          title: "6.梅ノ橋（眩曜夜行の橋）",
+          detail: "",
+          lat: 36.5707,
+          lng: 136.6665,
+          checked: false
+        },
+        {
+          title: "7.尾山神社",
+          detail: "",
+          lat: 36.5661,
+          lng: 136.6547,
+          checked: false
+        },
+        {
+          title: "8.にし茶屋街の手すり",
+          detail: "",
+          lat: 36.5572,
+          lng: 136.6476,
+          checked: false
+        },
+        {
+          title: "9.てらまちや風心庵",
+          detail: "",
+          lat: 36.5520,
+          lng: 136.6542,
+          checked: false
+        },
+        {
+          title: "10.たい焼き工房土九さんのたい焼きを食べる",
+          detail: "",
+          lat: 36.5783,
+          lng: 136.6473,
+          checked: false
+        },
+        {
+          title: "11.兼六園で琴柱灯篭の写真を撮る",
+          detail: "",
+          lat: 36.5632,
+          lng: 136.6627,
+          checked: false
+        },
+        {
+          title: "12. 8番らーめんを食べる",
+          detail: "",
+          lat: 36.5775,
+          lng: 136.6475,
+          checked: false
+        },
+        {
+          title: "13.金沢蓄音器館",
+          detail: "",
+          lat: 36.5712,
+          lng: 136.6627,
+          checked: false
+        },
+        {
+          title: "14.長町武家屋敷跡",
+          detail: "",
+          lat: 36.5636,
+          lng: 136.6510,
+          checked: false
+        },
+        {
+          title: "15.金沢くらしの博物館",
+          detail: "",
+          lat: 36.5580,
+          lng: 136.6679,
+          checked: false
+        },
+        {
+          title: "16.加賀友禅会館",
+          detail: "",
+          lat: 36.5639,
+          lng: 136.6644,
+          checked: false
+        },
+        {
+          title: "17.石川県政しいのき迎賓館",
+          detail: "",
+          lat: 36.5620,
+          lng: 136.6578,
+          checked: false
+        }
+      ],
+      normal: [
+        {
+          title: "1. 甘納豆かわむらさん",
+          detail: "",
+          lat: 36.5566,
+          lng: 136.6470,
+          checked: false
+        },
+        {
+          title: "2. いっぷくやでおでん食べる",
+          detail: "",
+          lat: 36.5711,
+          lng: 136.6570,
+          checked: false
+        },
+        {
+          title: "3.忍者武器ミュージアム",
+          detail: "",
+          lat: 36.5572,
+          lng: 136.6575,
+          checked: false
+        },
+        {
+          title: "4.八百萬本舗でひゃくまんさんと写真撮影",
+          detail: "",
+          lat: 36.5715,
+          lng: 136.6640,
+          checked: false
+        },
+        {
+          title: "5.健民スポレクプラザ(スケートリンク)",
+          detail: "",
+          lat: 36.5549,
+          lng: 136.6272,
+          checked: false
+        },
+        {
+          title: "6.うし重 てらおかさんで食事",
+          detail: "",
+          lat: 36.5737,
+          lng: 136.6547,
+          checked: false
+        },
+        {
+          title: "7.海鮮丼屋 ひら井 いちば館店",
+          detail: "",
+          lat: 36.5715,
+          lng: 136.6558,
+          checked: false
+        },
+        {
+          title: "8.和栗 白露さんでモンブラン食べる",
+          detail: "",
+          lat: 36.5719,
+          lng: 136.6680,
+          checked: false
+        },
+        {
+          title: "9.21世紀美術館の中に入る",
+          detail: "",
+          lat: 36.5607,
+          lng: 136.6585,
+          checked: false
+        },
+        {
+          title: "10.金沢市立安江金箔工芸館",
+          detail: "",
+          lat: 36.5738,
+          lng: 136.6659,
+          checked: false
+        },
+        {
+          title: "11.加賀てまり 毬屋",
+          detail: "",
+          lat: 36.5665,
+          lng: 136.6541,
+          checked: false
+        },
+      ],
+      hard: [
+        {
+          title: "1.グリルオーツカのスリブ席で食事",
+          detail: "",
+          lat: 36.5619,
+          lng: 136.6518,
+          checked: false
+        },
+        {
+          title: "2.主計町茶屋街で映え写真",
+          detail: "",
+          lat: 36.5722,
+          lng: 136.6637,
+          checked: false
+        },
+        {
+          title: "3.ひがし茶屋街で映え写真",
+          detail: "",
+          lat: 36.5613,
+          lng: 136.6567,
+          checked: false
+        },
+        {
+          title: "4.にし茶屋街で映え写真",
+          detail: "",
+          lat: 36.5725,
+          lng: 136.6665,
+          checked: false
+        },
+        {
+          title: "5.大野からくり記念館",
+          detail: "",
+          lat: 36.6190,
+          lng: 136.6043,
+          checked: false
+        },
+        {
+          title: "6.卯辰山で104期12話の再現",
+          detail: "",
+          lat: 36.5730,
+          lng: 136.6778,
+          checked: false
+        },
+        {
+          title: "7.もろみ蔵さんで食事",
+          detail: "",
+          lat: 36.6114,
+          lng: 136.6054,
+          checked: false
+        },
+        {
+          title: "8.アピナ野々市店(バッティングセンター)",
+          detail: "",
+          lat: 36.5273,
+          lng: 136.6122,
+          checked: false
+        },
+        {
+          title: "9.加賀友禅のものを身に纏う",
+          detail: "場所指定なし",
+          checked: false
+        },
+        {
+          title: "10.尾山神社で友禅吟子のグッズで写真撮影",
+          detail: "",
+          lat: 36.5661,
+          lng: 136.6548,
+          checked: false
+        },
+        {
+          title: "11.自遊花人水引ミュージアムで友禅姫芽のグッズで写真撮影",
+          detail: "",
+          lat: 36.5510,
+          lng: 136.6574,
+          checked: false
+        },
+        {
+          title: "12.主計町茶屋街付近で友禅小鈴のグッズで写真撮影",
+          detail: "",
+          lat: 36.5722,
+          lng: 136.6638,
+          checked: false
+        },
+      ],
+      extra: [
+      {
+          title: "1.卯辰山で103期(6人)のキービジュ撮影",
+          detail: "",
+          lat: 36.5732,
+          lng: 136.6778,
+          checked: false
+        },
+        {
+          title: "2.他班1班を尾行の上撮影する ※1枚のみ有効 (自班と相手班のどちらも1人以上は映す事)",
+          detail: "場所指定はありません",
+          checked: false
+        },
+        {
+          title: "3.手取フィッシュランドで観覧車に乗る",
+          detail: "",
+          lat: 36.4590,
+          lng: 136.5092,
+          checked: false
+        },
+        {
+          title: "4.兼六園の琴柱灯篭で友禅寝そさやかと写真を撮る",
+          detail: "",
+          lat: 36.5632,
+          lng: 136.6627,
+          checked: false
+        },
+        {
+          title: "5.大野からくり記念館で友禅寝そ梢と写真を撮る",
+          detail: "",
+          lat: 36.6190,
+          lng: 136.6043,
+          checked: false
+        },
+        {
+          title: "6.石川県歴史博物館で友禅寝そ花帆と写真を撮る",
+          detail: "",
+          lat: 36.5585,
+          lng: 136.6628,
+          checked: false
+        },
+        {
+          title: "7.茶屋 懐華樓の前で友禅寝そ慈と写真を撮る",
+          detail: "",
+          lat: 36.5723,
+          lng: 136.6670,
+          checked: false
+        },
+        {
+          title: "8.長町武家屋敷跡で友禅寝そ綴理と写真を撮る",
+          detail: "",
+          lat: 36.5636,
+          lng: 136.6511,
+          checked: false
+        },
+        {
+          title: "9.金沢城石川橋で友禅寝そ瑠璃乃と写真を撮る",
+          detail: "",
+          lat: 36.5648,
+          lng: 136.6619,
+          checked: false
+        },
+        {
+          title: "10.寝そセラスと写真を撮る",
+          detail: "場所指定はありません",
+          checked: false
+        },
+        {
+          title: "11.寝そ泉と写真を撮る",
+          detail: "場所指定はありません",
+          checked: false
+        },
+      ],
+      ultra: [
+        {
+          title: "1.小松空港でルリ・エスケープ再現",
+          detail: "",
+          lat: 36.3928,
+          lng: 136.4059,
+          checked: false
+        },
+        {
+          title: "2.松葉屋さんで月読み山路を買う",
+          detail: "",
+          lat: 36.4007,
+          lng: 136.4480,
+          checked: false
+        },
+        {
+          title: "3.友禅ミッションシリーズ全制覇",
+          detail: "場所指定はありません",
+          checked: false
+        },
+      ]
+    };
+
+    const markerColors = {
+      easy: "dodgerblue",
+      normal: "green",
+      hard: "gold",
+      extra: "red",
+      ultra: "indigo"
+    };
+
+    const allMarkers = [];
+
+    for (const level in allMissions) {
+      allMissions[level].forEach(m => {
+        if (m.lat && m.lng) {
+          const marker = L.circleMarker([m.lat, m.lng], {
+            radius: 8,
+            fillColor: markerColors[level],
+            color: "#333",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+          }).bindPopup(`<b>${m.title}</b><br>難易度：${level}`).addTo(map);
+          allMarkers.push({ marker: marker, difficulty: level });
+        }
+      });
+    }
+
+    function filterMarkers(level) {
+      allMarkers.forEach(item => {
+        if (level === 'all' || item.difficulty === level) {
+          item.marker.addTo(map);
+        } else {
+          map.removeLayer(item.marker);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
