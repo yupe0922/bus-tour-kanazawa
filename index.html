@@ -21,6 +21,41 @@
       background-size: auto;
     }
 
+    .hamburger {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.side-menu {
+  position: absolute;
+  top: 48px;
+  left: 12px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  display: none;
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.side-menu a {
+  display: block;
+  color: #333;
+  text-decoration: none;
+  padding: 6px 8px;
+}
+
+.side-menu a:hover {
+  background-color: #eee;
+  border-radius: 4px;
+}
+
+
     .site-title {
     font-size: 25px; /* 好きなサイズに変更 */
     }
@@ -80,19 +115,6 @@
       border: 2px solid #777 !important;
       color: #000 !important;
     }
-
-    .mission-link {
-  display: inline-block;
-  margin: 6px;
-  padding: 8px 16px;
-  font-size: 15px;
-  border-radius: 8px;
-  text-decoration: none;
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #aaa;
-  transition: background-color 0.2s ease;
-}
 
 .mission-link:hover {
   background: #e0e0e0;
@@ -208,6 +230,16 @@
   </style>
 </head>
 <body>
+
+  <!-- ハンバーガーメニュー -->
+<div class="hamburger" onclick="toggleMenu()">☰</div>
+
+<!-- メニューの中身 -->
+<div class="side-menu" id="sideMenu">
+  <a href="missions.html" class="mission-link">▶ ミッションだけ見る</a>
+  <a href="map-only.html" class="map-link">▶ 地図だけ見る</a>
+</div>
+
   <div class="topbar">
     <h1 class="site-title">オタクバスツアー in 金沢 </h1>
 
@@ -216,8 +248,6 @@
     <button class="hard" onclick="setDifficulty('hard')">ハード</button>
     <button class="extra" onclick="setDifficulty('extra')">エクストラ</button>
     <button class="ultra" onclick="setDifficulty('ultra')">ウルトラ</button>
-
-    <a href="missions.html" class="mission-link">▶ ミッションだけ見る</a>
 
   </div>
 
@@ -232,6 +262,12 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
+
+  function toggleMenu() {
+    const menu = document.getElementById("sideMenu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+  }
+
     const allMissions = {
       easy: [
         {
@@ -614,7 +650,9 @@
     };
 
     let currentDifficulty = 'easy';
-    let map = L.map('map').setView([36.5715, 136.6567], 13);
+    let map = L.map('map',{
+      zoomControl: false
+    }).setView([36.5715, 136.6567], 13);
     let listEl = document.getElementById("list");
     let detailEl = document.getElementById("detail");
     let markers = [];
