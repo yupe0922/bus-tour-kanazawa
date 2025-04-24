@@ -29,23 +29,27 @@
       font-size: 1.5rem;
       font-weight: bold;
     }
+
     .back-button {
-      position: absolute;
-      left: 16px;
-      font-size: 0.9rem;
-      text-decoration: none;
-      color: #333;
-      background: #eee;
-      padding: 6px 10px;
-      border: 1px solid #888;
-      border-radius: 6px;
-      box-shadow: 0 3px #999;
-      transition: all 0.1s ease;
-    }
-    .back-button:active {
-      box-shadow: 0 1px #666;
-      transform: translateY(2px);
-    }
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: #333;
+  background: #eee;
+  padding: 6px 10px;
+  border: 1px solid #888;
+  border-radius: 6px;
+  box-shadow: none;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background: #ddd;
+}
+
     .topbar {
       padding: 10px;
       background: #fff;
@@ -152,9 +156,10 @@
     }
   </style>
 </head>
+
 <body>
   <header>
-    <a href="index.html" class="back-button">← トップへ戻る</a>
+    <a href="index.html" class="back-button">トップへ戻る</a>
     <h1>ミッションだけ見る</h1>
   </header>
 
@@ -275,3 +280,4 @@
   </script>
 </body>
 </html>
+
