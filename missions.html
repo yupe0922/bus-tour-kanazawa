@@ -127,7 +127,21 @@
       color: #777;
       margin-top: 20px;
     }
+
     @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        align-items: center;
+      }
+      header h1 {
+        text-align: center;
+        font-size: 1.3rem;
+        margin-top: 5px;
+      }
+      .back-button {
+        position: static;
+        margin-bottom: 5px;
+      }
       .topbar {
         flex-direction: column;
         align-items: center;
@@ -140,7 +154,7 @@
 </head>
 <body>
   <header>
-    <a href="index.html" class="back-button">トップへ戻る</a>
+    <a href="index.html" class="back-button">← トップへ戻る</a>
     <h1>ミッションだけ見る</h1>
   </header>
 
@@ -160,13 +174,12 @@
     </div>
   </div>
 
-  <div class="progress-bar">
-    <div id="progress-fill" class="progress-fill"></div>
+  <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+  <div class="filter-status">
+    <div id="filter-label"></div>
+    <div id="filter-progress" style="font-size: 0.9rem; margin-top: 4px;"></div>
   </div>
-
-  <div id="filter-status" class="filter-status"></div>
   <div class="missions" id="mission-list"></div>
-
   <script>
     const allMissions = JSON.parse(localStorage.getItem('missions')) || {};
     let currentDifficulty = 'all';
@@ -187,38 +200,39 @@
     }
 
     function updateFilterStatus() {
-  const statusMap = {
-    all: "すべてのミッションを表示中",
-    checked: "チェック済のミッションを表示中",
-    unchecked: "未チェックのミッションを表示中"
-  };
+      const statusMap = {
+        all: "すべてのミッションを表示中",
+        checked: "チェック済のミッションを表示中",
+        unchecked: "未チェックのミッションを表示中"
+      };
 
-  const missions = currentDifficulty === 'all'
-    ? Object.values(allMissions).flat()
-    : allMissions[currentDifficulty] || [];
+      const missions = currentDifficulty === 'all'
+        ? Object.values(allMissions).flat()
+        : allMissions[currentDifficulty] || [];
 
-  let total = 0;
-  let done = 0;
+      let total = 0;
+      let done = 0;
 
-  missions.forEach(m => {
-    if (currentFilter === 'checked' && !m.checked) return;
-    if (currentFilter === 'unchecked' && m.checked) return;
-    total++;
-    if (m.checked) done++;
-  });
+      missions.forEach(m => {
+        if (currentFilter === 'checked' && !m.checked) return;
+        if (currentFilter === 'unchecked' && m.checked) return;
+        total++;
+        if (m.checked) done++;
+      });
 
-  const rate = total ? Math.round((done / total) * 100) : 0;
-  const label = statusMap[currentFilter] || "";
-  document.getElementById("filter-status").textContent =
-    `${label}（${done} / ${total}、達成率：${rate}%）`;
-}
+      const rate = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById("filter-label").textContent = statusMap[currentFilter] || "";
+      document.getElementById("filter-progress").textContent = `（${done} / ${total}、達成率：${rate}%）`;
+    }
 
     function renderList() {
       updateFilterStatus();
       const list = document.getElementById('mission-list');
       list.innerHTML = '';
       let shown = 0, done = 0, total = 0;
-      const groups = currentDifficulty === 'all' ? Object.entries(allMissions) : [[currentDifficulty, allMissions[currentDifficulty]]];
+      const groups = currentDifficulty === 'all'
+        ? Object.entries(allMissions)
+        : [[currentDifficulty, allMissions[currentDifficulty]]];
 
       groups.forEach(([level, missions]) => {
         if (!missions) return;
