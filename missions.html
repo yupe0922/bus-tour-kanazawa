@@ -1,151 +1,263 @@
 <!DOCTYPE html>
 <html lang="ja">
-
-<div class="parent-container">
-  <a href="index.html" class="back-button"> 戻る</a>
-</div>
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ミッション一覧</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet">
+  <title>ミッションだけ見る</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet" />
   <style>
-
     body {
+      margin: 0;
+      padding: 0;
       font-family: 'Noto Serif JP', serif;
-      background-color: #fef8e5;
-      color: #333;
-      margin: 20px;
+      background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-repeat: repeat;
+      background-size: auto;
+      color: #3e3e3e;
     }
-
-
-    h1 {
+    header {
+      background-color: #fffdf6;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    header h1 {
+      flex: 1;
       text-align: center;
-      font-size: 24px;
-      margin-bottom: 30px;
-      color: #7b3b3b;
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: bold;
     }
-
-    h2 {
-      color: #7b3b3b;
-      border-bottom: 2px solid #ccc;
-      padding-bottom: 4px;
-      margin-top: 32px;
-    }
-
-    ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    li {
-      padding: 8px;
-      margin-bottom: 6px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-    }
-
     .back-button {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #eee;
-  border: 1px solid #bbb;
-  border-radius: 8px;
-  color: #333;
-  text-decoration: none;
-  font-size: 14px;
-  transition: background 0.2s ease;
-  margin-left: 0;
-}
+      position: absolute;
+      left: 16px;
+      font-size: 0.9rem;
+      text-decoration: none;
+      color: #333;
+      background: #eee;
+      padding: 6px 10px;
+      border: 1px solid #888;
+      border-radius: 6px;
+      box-shadow: 0 3px #999;
+      transition: all 0.1s ease;
+    }
+    .back-button:active {
+      box-shadow: 0 1px #666;
+      transform: translateY(2px);
+    }
+    .topbar {
+      padding: 10px;
+      background: #fff;
+      text-align: center;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .topbar button, .topbar select {
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #888;
+      cursor: pointer;
+      box-shadow: 0 3px #999;
+      transition: all 0.1s ease;
+    }
+    .topbar button:active, .topbar select:active {
+      box-shadow: 0 1px #666;
+      transform: translateY(2px);
+    }
+    .easy { background: linear-gradient(to right, #64b5f6, #42a5f5); color: #000; }
+    .normal { background: linear-gradient(to right, #81c784, #66bb6a); color: #000; }
+    .hard { background: linear-gradient(to right, #fff176, #fbc02d); color: #000; }
+    .extra { background: linear-gradient(to right, #e57373, #ef5350); color: #000; }
+    .ultra { background: linear-gradient(to right, #9575cd, #7e57c2); color: #000; }
 
-.back-button:hover {
-  background: #ddd;
-}
+    .progress-bar {
+      height: 18px;
+      margin: 8px 16px;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #4caf50;
+      width: 0%;
+      transition: 0.3s;
+    }
 
-.parent-container {
-  text-align: left;
-}
+    .filters {
+      text-align: center;
+      margin: 10px;
+    }
+    .filters button {
+      margin: 0 4px;
+    }
 
+    .filter-status {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #444;
+    }
+
+    .missions {
+      padding: 10px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .mission-item {
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mission-item input {
+      transform: scale(1.3);
+    }
+    .empty-message {
+      text-align: center;
+      color: #777;
+      margin-top: 20px;
+    }
+    @media (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        align-items: center;
+      }
+      .topbar select {
+        width: 180px;
+      }
+    }
   </style>
 </head>
 <body>
+  <header>
+    <a href="index.html" class="back-button">トップへ戻る</a>
+    <h1>ミッションだけ見る</h1>
+  </header>
 
-  <h1>～ミッション一覧～</h1>
+  <div class="topbar">
+    <select id="difficultySelect" onchange="setDifficulty(this.value)">
+      <option value="all">全難易度</option>
+      <option value="easy">イージー</option>
+      <option value="normal">ノーマル</option>
+      <option value="hard">ハード</option>
+      <option value="extra">エクストラ</option>
+      <option value="ultra">ウルトラ</option>
+    </select>
+    <div class="filters">
+      <button onclick="setFilter('all')">すべて</button>
+      <button onclick="setFilter('checked')">チェック済</button>
+      <button onclick="setFilter('unchecked')">未チェック</button>
+    </div>
+  </div>
 
-  <h2>イージーミッション</h2>
-  <ul>
-    <li>1. 鼓門で班全員で写真撮影</li>
-    <li>2. 金沢ゲーマーズで各推しとツーショット</li>
-    <li>3. 石川県立図書館内部の写真を撮影</li>
-    <li>4. 鳥骨鶏ソフト（金澤島鶏庵さん）</li>
-    <li>5.金沢城内の写真を撮影</li>
-    <li>6.梅ノ橋（眩曜夜行の橋）</li>
-    <li>7.尾山神社</li>
-    <li>8.にし茶屋街の手すり</li>
-    <li>9.てらまちや風心庵</li>
-    <li>10.たい焼き工房土九さんのたい焼きを食べる</li>
-    <li>11.兼六園で琴柱灯篭の写真を撮る</li>
-    <li>12. 8番らーめんを食べる</li>
-    <li>13.金沢蓄音器館</li>
-    <li>14.長町武家屋敷跡</li>
-    <li>15.金沢くらしの博物館</li>
-    <li>16.加賀友禅会館</li>
-    <li>17.石川県政しいのき迎賓館</li>
-  </ul>
+  <div class="progress-bar">
+    <div id="progress-fill" class="progress-fill"></div>
+  </div>
 
-  <h2>ノーマルミッション</h2>
-  <ul>
-    <li>1. 甘納豆かわむらさん</li>
-    <li>2. いっぷくやでおでん食べる</li>
-    <li>3.忍者武器ミュージアム</li>
-    <li>4.八百萬本舗でひゃくまんさんと写真撮影</li>
-    <li>5.健民スポレクプラザ(スケートリンク)</li>
-    <li>6.うし重 てらおかさんで食事</li>
-    <li>7.海鮮丼屋 ひら井 いちば館店</li>
-    <li>8.和栗 白露さんでモンブラン食べる</li>
-    <li>9. 21世紀美術館の中に入る</li>
-    <li>10.金沢市立安江金箔工芸館</li>
-    <li>11.加賀てまり 毬屋</li>
-  </ul>
+  <div id="filter-status" class="filter-status"></div>
+  <div class="missions" id="mission-list"></div>
 
-  <h2>ハードミッション</h2>
-  <ul>
-    <li>1. グリルオーツカのスリブ席で食事</li>
-    <li>2. 主計町茶屋街で映え写真</li>
-    <li>3.ひがし茶屋街で映え写真</li>
-    <li>4.にし茶屋街で映え写真</li>
-    <li>5.大野からくり記念館</li>
-    <li>6.卯辰山で104期12話の再現</li>
-    <li>7.もろみ蔵さんで食事</li>
-    <li>8.アピナ野々市店(バッティングセンター)</li>
-    <li>9.加賀友禅のものを身に纏う</li>
-    <li>10.尾山神社で友禅吟子のグッズで写真撮影</li>
-    <li>11.自遊花人水引ミュージアムで友禅姫芽のグッズで写真撮影</li>
-    <li>12.蓮ノ空歌留多徒町小鈴のモデル地で友禅小鈴のグッズで写真撮影</li>
-  </ul>
+  <script>
+    const allMissions = JSON.parse(localStorage.getItem('missions')) || {};
+    let currentDifficulty = 'all';
+    let currentFilter = 'all';
 
-  <h2>エクストラミッション</h2>
-  <ul>
-    <li>1. 卯辰山で103期(6人)のキービジュ撮影</li>
-    <li>2. 他班1班を尾行の上撮影する ※1枚のみ有効</li>
-    <li>3.手取フィッシュランドで観覧車に乗る</li>
-    <li>4.兼六園の琴柱灯篭で友禅寝そさやかと写真を撮る</li>
-    <li>5.大野からくり記念館で友禅寝そ梢と写真を撮る</li>
-    <li>6.石川県歴史博物館で友禅寝そ花帆と写真を撮る</li>
-    <li>7.茶屋 懐華樓の前で友禅寝そ慈と写真を撮る</li>
-    <li>8.長町武家屋敷跡で友禅寝そ綴理と写真を撮る</li>
-    <li>9.金沢城石川橋で友禅寝そ瑠璃乃と写真を撮る</li>
-    <li>10.寝そセラスと写真を撮る</li>
-    <li>11.寝そ泉と写真を撮る</li>
-  </ul>
+    function saveState() {
+      localStorage.setItem('missions', JSON.stringify(allMissions));
+    }
 
-  <h2>ウルトラミッション</h2>
-  <ul>
-    <li>1. 小松空港でルリ・エスケープ再現</li>
-    <li>2. 松葉屋さんで月読み山路を買う</li>
-    <li>3.友禅ミッションシリーズ全制覇</li>
-  </ul>
+    function setDifficulty(level) {
+      currentDifficulty = level;
+      renderList();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      renderList();
+    }
+
+    function updateFilterStatus() {
+  const statusMap = {
+    all: "すべてのミッションを表示中",
+    checked: "チェック済のミッションを表示中",
+    unchecked: "未チェックのミッションを表示中"
+  };
+
+  const missions = currentDifficulty === 'all'
+    ? Object.values(allMissions).flat()
+    : allMissions[currentDifficulty] || [];
+
+  let total = 0;
+  let done = 0;
+
+  missions.forEach(m => {
+    if (currentFilter === 'checked' && !m.checked) return;
+    if (currentFilter === 'unchecked' && m.checked) return;
+    total++;
+    if (m.checked) done++;
+  });
+
+  const rate = total ? Math.round((done / total) * 100) : 0;
+  const label = statusMap[currentFilter] || "";
+  document.getElementById("filter-status").textContent =
+    `${label}（${done} / ${total}、達成率：${rate}%）`;
+}
+
+    function renderList() {
+      updateFilterStatus();
+      const list = document.getElementById('mission-list');
+      list.innerHTML = '';
+      let shown = 0, done = 0, total = 0;
+      const groups = currentDifficulty === 'all' ? Object.entries(allMissions) : [[currentDifficulty, allMissions[currentDifficulty]]];
+
+      groups.forEach(([level, missions]) => {
+        if (!missions) return;
+        missions.forEach((mission, index) => {
+          if (currentFilter === 'checked' && !mission.checked) return;
+          if (currentFilter === 'unchecked' && mission.checked) return;
+          shown++;
+          total++;
+          if (mission.checked) done++;
+          const item = document.createElement('div');
+          item.className = 'mission-item';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = mission.checked;
+          cb.onchange = () => {
+            mission.checked = cb.checked;
+            saveState();
+            renderList();
+          };
+          const label = document.createElement('label');
+          label.textContent = `[${level.toUpperCase()}] ${mission.title}`;
+          item.appendChild(cb);
+          item.appendChild(label);
+          list.appendChild(item);
+        });
+      });
+
+      if (shown === 0) {
+        const msg = document.createElement('p');
+        msg.className = 'empty-message';
+        msg.textContent = '表示するミッションがありません。';
+        list.appendChild(msg);
+      }
+
+      const percent = total ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progress-fill').style.width = percent + '%';
+    }
+
+    renderList();
+  </script>
 </body>
 </html>
