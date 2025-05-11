@@ -106,6 +106,10 @@
       color: #444;
     }
 
+    #title {
+  text-align: center;
+  }
+
     .missions {
       padding: 10px;
       max-width: 800px;
@@ -171,13 +175,10 @@
       <option value="ultra">ウルトラ</option>
     </select>
     <div class="filters">
-      <button onclick="setFilter('all')">すべて</button>
-      <button onclick="setFilter('checked')">チェック済</button>
-      <button onclick="setFilter('unchecked')">未チェック</button>
     </div>
   </div>
-
   <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+  <div id="title" style="font-weight: bold; margin-top: 5px;">称号：見習いオタク</div>
   <div class="filter-status">
     <div id="filter-label"></div>
     <div id="filter-progress" style="font-size: 0.9rem; margin-top: 4px;"></div>
@@ -203,11 +204,7 @@
     }
 
     function updateFilterStatus() {
-      const statusMap = {
-        all: "すべてのミッションを表示中",
-        checked: "チェック済のミッションを表示中",
-        unchecked: "未チェックのミッションを表示中"
-      };
+      const statusMap = {};
 
       const missions = currentDifficulty === 'all'
         ? Object.values(allMissions).flat()
@@ -226,6 +223,15 @@
       const rate = total ? Math.round((done / total) * 100) : 0;
       document.getElementById("filter-label").textContent = statusMap[currentFilter] || "";
       document.getElementById("filter-progress").textContent = `（${done} / ${total}、達成率：${rate}%）`;
+      let title = "見習いオタク";
+      if (rate >= 100) title = "蓮ノ空の生徒";
+      else if (rate >= 90) title = "せーはすマスター";
+      else if (rate >= 60) title = "上級オタク";
+      else if (rate >= 30) title = "中級オタク";
+      else if (rate >= 1)  title = "初級オタク";
+
+      document.getElementById("title").textContent = `称号：${title}`;
+
     }
 
     function renderList() {

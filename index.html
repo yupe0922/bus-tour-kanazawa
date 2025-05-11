@@ -133,6 +133,10 @@
       flex-direction: row;
     }
 
+    #title {
+  text-align: center;
+  }
+
     .list {
       width: 35%;
       max-width: 400px;
@@ -250,9 +254,8 @@
     <button class="ultra" onclick="setDifficulty('ultra')">ウルトラ</button>
 
   </div>
-
+  <div class="status" id="title">称号：見習いオタク</div>
   <div id="progress">達成率：0 / 0（0%）</div>
-
   <div class="container">
     <div class="list" id="list"></div>
     <div id="map"></div>
@@ -729,6 +732,15 @@
       const done = missions.filter(m => m.checked).length;
       const percent = total === 0 ? 0 : Math.round((done / total) * 100);
       document.getElementById("progress").textContent = `達成率：${done} / ${total}（${percent}%）`;
+      let title = "見習いオタク";
+if (percent >= 100) title = "蓮ノ空の生徒";
+else if (percent >= 90) title = "せーはすマスター";
+else if (percent >= 60) title = "上級オタク";
+else if (percent >= 30) title = "中級オタク";
+else if (percent >= 1)  title = "初級オタク";
+
+document.getElementById("title").textContent = `称号：${title}`;
+
     }
 
     function saveProgress() {

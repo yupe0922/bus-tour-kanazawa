@@ -112,6 +112,43 @@
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
+   let userLocation = null;
+
+   navigator.geolocation.getCurrentPosition(
+  (pos) => {
+    userLocation = {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude
+    };
+
+    // 現在地マーカーを表示
+    L.marker([userLocation.lat, userLocation.lng])
+  .addTo(map)
+  .bindPopup("現在地")
+  .openPopup();
+
+    // ここでマーカーを描画！
+    renderMarkersWithDistance();
+  },
+  (err) => {
+    console.warn("現在地取得に失敗:", err.message);
+    renderMarkersWithDistance(); // エラーでもマーカーを表示
+  }
+);
+
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371e3;
+  const toRad = deg => deg * Math.PI / 180;
+  const φ1 = toRad(lat1), φ2 = toRad(lat2);
+  const Δφ = toRad(lat2 - lat1);
+  const Δλ = toRad(lng2 - lng1);
+  const a = Math.sin(Δφ / 2) ** 2 +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
     const map = L.map('map', { zoomControl: false }).setView([36.5715, 136.6567], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Map data © OpenStreetMap contributors'
@@ -508,21 +545,31 @@
 
     const allMarkers = [];
 
-    for (const level in allMissions) {
-      allMissions[level].forEach(m => {
-        if (m.lat && m.lng) {
-          const marker = L.circleMarker([m.lat, m.lng], {
-            radius: 8,
-            fillColor: markerColors[level],
-            color: "#333",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          }).bindPopup(`<b>${m.title}</b><br>難易度：${level}`).addTo(map);
-          allMarkers.push({ marker: marker, difficulty: level });
+function renderMarkersWithDistance() {
+  for (const level in allMissions) {
+    allMissions[level].forEach(m => {
+      if (m.lat && m.lng) {
+        let popupText = `<b>${m.title}</b><br>難易度：${level}`;
+
+        if (userLocation) {
+          const dist = calculateDistance(userLocation.lat, userLocation.lng, m.lat, m.lng);
+          popupText += `<br>距離：約${Math.round(dist)}m`;
         }
-      });
-    }
+
+        const marker = L.circleMarker([m.lat, m.lng], {
+          radius: 8,
+          fillColor: markerColors[level],
+          color: "#333",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).bindPopup(popupText).addTo(map);
+
+        allMarkers.push({ marker: marker, difficulty: level });
+      }
+    });
+  }
+}
 
     function filterMarkers(level) {
       allMarkers.forEach(item => {
@@ -533,6 +580,7 @@
         }
       });
     }
+
   </script>
 </body>
 </html>
