@@ -110,6 +110,21 @@
   text-align: center;
   }
 
+  #progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #ccc;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #4caf50;
+  transition: width 0.5s, background 0.5s;
+}
     .missions {
       padding: 10px;
       max-width: 800px;
@@ -134,6 +149,13 @@
       color: #777;
       margin-top: 20px;
     }
+
+    .difficulty-header {
+  font-weight: bold;
+  margin-top: 16px;
+  font-size: 18px;
+  color: #333;
+}
 
     @media (max-width: 600px) {
       header {
@@ -174,10 +196,19 @@
       <option value="extra">エクストラ</option>
       <option value="ultra">ウルトラ</option>
     </select>
+
+    <select id="sortType" onchange="renderList()">
+      <option value="default">通常順</option>
+      <option value="checkedOrder">未チェック順</option>
+      <option value="distance">現在地に近い順</option>
+    </select>
+    
     <div class="filters">
     </div>
   </div>
-  <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+  <div id="progress-bar">
+    <div id="progress-fill"></div>
+  </div>  
   <div id="title" style="font-weight: bold; margin-top: 5px;">称号：見習いオタク</div>
   <div class="filter-status">
     <div id="filter-label"></div>
@@ -185,102 +216,197 @@
   </div>
   <div class="missions" id="mission-list"></div>
   <script>
+    let userLocation = null;
+  
+    // 現在地取得
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        userLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        renderList();
+      },
+      (err) => {
+        console.warn("位置情報が取得できませんでした:", err.message);
+        renderList(); // エラーでもリストは表示する
+      }
+    );
+  
+    function calculateDistance(lat1, lng1, lat2, lng2) {
+      const R = 6371e3;
+      const toRad = deg => deg * Math.PI / 180;
+      const φ1 = toRad(lat1), φ2 = toRad(lat2);
+      const Δφ = toRad(lat2 - lat1);
+      const Δλ = toRad(lng2 - lng1);
+      const a = Math.sin(Δφ / 2) ** 2 +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+  
     const allMissions = JSON.parse(localStorage.getItem('missions')) || {};
     let currentDifficulty = 'all';
     let currentFilter = 'all';
-
+  
     function saveState() {
       localStorage.setItem('missions', JSON.stringify(allMissions));
     }
-
+  
     function setDifficulty(level) {
       currentDifficulty = level;
       renderList();
     }
-
+  
     function setFilter(filter) {
       currentFilter = filter;
       renderList();
     }
-
+  
     function updateFilterStatus() {
-      const statusMap = {};
+  const statusMap = {
+    all: "すべてのミッション",
+    checked: "チェック済のミッション",
+    unchecked: "未チェックのミッション"
+  };
 
-      const missions = currentDifficulty === 'all'
-        ? Object.values(allMissions).flat()
-        : allMissions[currentDifficulty] || [];
+  const sortType = document.getElementById("sortType")?.value || "default";
+  const sortLabel = {
+    default: "",
+    checkedOrder: "チェック順で",
+    distance: "現在地から近い順で"
+  };
 
-      let total = 0;
-      let done = 0;
+  const difficultyLabel = currentDifficulty === 'all'
+    ? ""
+    : `${currentDifficulty.charAt(0).toUpperCase()}${currentDifficulty.slice(1)}ミッションのみを`;
 
-      missions.forEach(m => {
-        if (currentFilter === 'checked' && !m.checked) return;
-        if (currentFilter === 'unchecked' && m.checked) return;
-        total++;
-        if (m.checked) done++;
-      });
+  const statusText = `${difficultyLabel}${statusMap[currentFilter] || ""}${sortLabel[sortType] || ""}表示中`;
+  document.getElementById("filter-label").textContent = statusText;
 
-      const rate = total ? Math.round((done / total) * 100) : 0;
-      document.getElementById("filter-label").textContent = statusMap[currentFilter] || "";
-      document.getElementById("filter-progress").textContent = `（${done} / ${total}、達成率：${rate}%）`;
-      let title = "見習いオタク";
-      if (rate >= 100) title = "蓮ノ空の生徒";
-      else if (rate >= 90) title = "せーはすマスター";
-      else if (rate >= 60) title = "上級オタク";
-      else if (rate >= 30) title = "中級オタク";
-      else if (rate >= 1)  title = "初級オタク";
+  // 絞り込み用の数
+  const missions = currentDifficulty === 'all'
+    ? Object.values(allMissions).flat()
+    : allMissions[currentDifficulty] || [];
 
-      document.getElementById("title").textContent = `称号：${title}`;
+  let total = 0;
+  let done = 0;
+  missions.forEach(m => {
+    if (currentFilter === 'checked' && !m.checked) return;
+    if (currentFilter === 'unchecked' && m.checked) return;
+    total++;
+    if (m.checked) done++;
+  });
 
-    }
+  const rate = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("filter-progress").textContent = `（${done} / ${total}、達成率：${rate}%）`;
+
+  // 全体の進捗率で色変更
+  const allMissionsFlat = Object.values(allMissions).flat();
+  let totalAll = allMissionsFlat.length;
+  let doneAll = allMissionsFlat.filter(m => m.checked).length;
+  const percentAll = totalAll ? Math.round((doneAll / totalAll) * 100) : 0;
+
+  const progressFill = document.getElementById('progress-fill');
+  progressFill.style.width = percentAll + '%';
+  if (percentAll === 100) {
+    progressFill.style.background = 'linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)';
+  } else if (percentAll >= 80) {
+    progressFill.style.background = 'gold';
+  } else {
+    progressFill.style.background = '#4caf50';
+  }
+
+  // 称号表示
+  let title = "見習いオタク";
+  if (rate >= 100) title = "蓮ノ空の生徒";
+  else if (rate >= 90) title = "せーはすマスター";
+  else if (rate >= 60) title = "上級オタク";
+  else if (rate >= 30) title = "中級オタク";
+  else if (rate >= 1)  title = "初級オタク";
+  document.getElementById("title").textContent = `称号：${title}`;
+}
 
     function renderList() {
-      updateFilterStatus();
-      const list = document.getElementById('mission-list');
-      list.innerHTML = '';
-      let shown = 0, done = 0, total = 0;
-      const groups = currentDifficulty === 'all'
-        ? Object.entries(allMissions)
-        : [[currentDifficulty, allMissions[currentDifficulty]]];
+  updateFilterStatus();
+  const list = document.getElementById('mission-list');
+  list.innerHTML = '';
+  let shown = 0, done = 0, total = 0;
 
-      groups.forEach(([level, missions]) => {
-        if (!missions) return;
-        missions.forEach((mission, index) => {
-          if (currentFilter === 'checked' && !mission.checked) return;
-          if (currentFilter === 'unchecked' && mission.checked) return;
-          shown++;
-          total++;
-          if (mission.checked) done++;
-          const item = document.createElement('div');
-          item.className = 'mission-item';
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = mission.checked;
-          cb.onchange = () => {
-            mission.checked = cb.checked;
-            saveState();
-            renderList();
-          };
-          const label = document.createElement('label');
-          label.textContent = `[${level.toUpperCase()}] ${mission.title}`;
-          item.appendChild(cb);
-          item.appendChild(label);
-          list.appendChild(item);
-        });
+  const groups = currentDifficulty === 'all'
+    ? Object.entries(allMissions)
+    : [[currentDifficulty, allMissions[currentDifficulty]]];
+
+  groups.forEach(([level, missions]) => {
+    if (!missions) return;
+
+    let filteredMissions = missions.filter(m => {
+      if (currentFilter === 'checked' && !m.checked) return false;
+      if (currentFilter === 'unchecked' && m.checked) return false;
+      return true;
+    });
+
+    // 並び替え（チェック順や距離順など）
+    const sortType = document.getElementById("sortType")?.value || "default";
+    if (sortType === "checkedOrder") {
+      filteredMissions.sort((a, b) => (a.checkedAt || 0) - (b.checkedAt || 0));
+    } else if (sortType === "distance" && userLocation) {
+      filteredMissions.sort((a, b) => {
+        const d1 = calculateDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
+        const d2 = calculateDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+        return d1 - d2;
       });
-
-      if (shown === 0) {
-        const msg = document.createElement('p');
-        msg.className = 'empty-message';
-        msg.textContent = '表示するミッションがありません。';
-        list.appendChild(msg);
-      }
-
-      const percent = total ? Math.round((done / total) * 100) : 0;
-      document.getElementById('progress-fill').style.width = percent + '%';
     }
 
+    if (currentDifficulty === 'all') {
+      const header = document.createElement('h3');
+      header.textContent = level.toUpperCase();
+      header.className = 'difficulty-header';
+      list.appendChild(header);
+    }
+
+    filteredMissions.forEach((mission, index) => {
+      shown++;
+      total++;
+      if (mission.checked) done++;
+      const item = document.createElement('div');
+      item.className = 'mission-item';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = mission.checked;
+      cb.onchange = () => {
+        mission.checked = cb.checked;
+        if (cb.checked) mission.checkedAt = Date.now();
+        else delete mission.checkedAt;
+        saveState();
+        renderList();
+      };
+      const label = document.createElement('label');
+      label.textContent = mission.title;
+      item.appendChild(cb);
+      item.appendChild(label);
+      list.appendChild(item);
+    });
+  });
+
+  if (shown === 0) {
+    const msg = document.createElement('p');
+    msg.className = 'empty-message';
+    msg.textContent = '表示するミッションがありません。';
+    list.appendChild(msg);
+  }
+
+  // 全体達成率でバーを更新
+  const allMissionsFlat = Object.values(allMissions).flat();
+  let totalAll = allMissionsFlat.length;
+  let doneAll = allMissionsFlat.filter(m => m.checked).length;
+  const percentAll = totalAll ? Math.round((doneAll / totalAll) * 100) : 0;
+  document.getElementById('progress-fill').style.width = percentAll + '%';
+}
+  
     renderList();
-  </script>
+  </script>  
+  
 </body>
 </html>
