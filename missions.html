@@ -157,6 +157,42 @@
   color: #333;
 }
 
+#title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.4em;
+  padding: 10px 20px;
+  margin: 20px auto;
+  border-radius: 12px;
+  color: white;
+  width: fit-content;
+}
+
+.title-default {
+  background-color: #666;
+}
+
+.title-green {
+  background-color: #4caf50;
+}
+
+.title-silver {
+  background: linear-gradient(135deg, #ccc, #aaa);
+}
+
+.title-gold {
+  background: linear-gradient(135deg, gold, orange);
+}
+
+.title-rainbow {
+  border: 3px solid transparent;
+  background-image: linear-gradient(black, black),
+    linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -209,7 +245,8 @@
   <div id="progress-bar">
     <div id="progress-fill"></div>
   </div>  
-  <div id="title" style="font-weight: bold; margin-top: 5px;">称号：見習いオタク</div>
+  <!-- 称号表示 -->
+<div id="title" class="rank-title">称号：見習いオタク</div>
   <div class="filter-status">
     <div id="filter-label"></div>
     <div id="filter-progress" style="font-size: 0.9rem; margin-top: 4px;"></div>
@@ -274,16 +311,21 @@
   const sortType = document.getElementById("sortType")?.value || "default";
   const sortLabel = {
     default: "",
-    checkedOrder: "チェック順で",
-    distance: "現在地から近い順で"
+    checkedOrder: "（未チェック順）",
+    distance: "（現在地から近い順）"
   };
 
-  const difficultyLabel = currentDifficulty === 'all'
-    ? ""
-    : `${currentDifficulty.charAt(0).toUpperCase()}${currentDifficulty.slice(1)}ミッションのみを`;
+  const difficultyMap = {
+    all: "",
+    easy: "EASYの",
+    normal: "NORMALの",
+    hard: "HARDの",
+    extra: "EXTRAの",
+    ultra: "ULTRAの"
+  };
 
-  const statusText = `${difficultyLabel}${statusMap[currentFilter] || ""}${sortLabel[sortType] || ""}表示中`;
-  document.getElementById("filter-label").textContent = statusText;
+  const label = `${difficultyMap[currentDifficulty] || ""}${statusMap[currentFilter] || ""}${sortLabel[sortType] || ""}を表示中`;
+  document.getElementById("filter-label").textContent = label;
 
   // 絞り込み用の数
   const missions = currentDifficulty === 'all'
@@ -319,13 +361,29 @@
   }
 
   // 称号表示
-  let title = "見習いオタク";
-  if (rate >= 100) title = "蓮ノ空の生徒";
-  else if (rate >= 90) title = "せーはすマスター";
-  else if (rate >= 60) title = "上級オタク";
-  else if (rate >= 30) title = "中級オタク";
-  else if (rate >= 1)  title = "初級オタク";
-  document.getElementById("title").textContent = `称号：${title}`;
+  const titleEl = document.getElementById("title");
+titleEl.className = "rank-title";
+
+if (percentAll >= 100) {
+  titleEl.textContent = "称号：蓮ノ空の生徒";
+  titleEl.classList.add("title-rainbow");
+} else if (percentAll >= 90) {
+  titleEl.textContent = "称号：せーはすマスター";
+  titleEl.classList.add("title-gold");
+} else if (percentAll >= 60) {
+  titleEl.textContent = "称号：上級オタク";
+  titleEl.classList.add("title-silver");
+} else if (percentAll >= 30) {
+  titleEl.textContent = "称号：中級オタク";
+  titleEl.classList.add("title-green");
+} else if (percentAll >= 1) {
+  titleEl.textContent = "称号：初級オタク";
+  titleEl.classList.add("title-default");
+} else {
+  titleEl.textContent = "称号：見習いオタク";
+  titleEl.classList.add("title-default");
+}
+
 }
 
     function renderList() {
