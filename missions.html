@@ -77,6 +77,29 @@
     .extra { background: linear-gradient(to right, #e57373, #ef5350); color: #000; }
     .ultra { background: linear-gradient(to right, #9575cd, #7e57c2); color: #000; }
 
+    .push-button-container {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.push-button-container button {
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.push-button-container button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
     .filters {
       text-align: center;
       margin: 10px;
@@ -217,6 +240,66 @@
   100% { transform: scale(1); }
 }
 
+.extra-title {
+  background: linear-gradient(to right, #ffc0cb, #ff69b4);
+  color: white;
+  font-size: 0.9em;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.extra-title.locked {
+  opacity: 0.3; /* 透明にする */
+  filter: grayscale(60%); /* モノクロっぽくする（お好みで） */
+  color: #fff;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+  background-color: #fffdf6;
+  margin: 10% auto;
+  padding: 20px;
+  border: 2px solid #888;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 15px;
+}
+
+.modal-content .extra-title {
+  display: inline-block;
+  margin: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -266,9 +349,13 @@
     <div class="filters">
     </div>
   </div>
+
+  <div class="push-button-container">
+    <button id="openPushModal" onclick="openPushModal()">特別称号を見る</button>
+  </div>
   
   <div id="progress-container">
-    <div id="title" class="title-default">称号：見習いオタク</div>
+    <div id="title" class="title-default">称号：見習いオタク</div> 
     <div id="filter-progress">（0 / 0、達成率：0%）</div>
     <div class="progress-bar">
       <div id="progress-fill"></div>
@@ -389,46 +476,64 @@
 
   // 称号表示とアニメーション
   const titleEl = document.getElementById("title");
-  let newTitleClass = "title-default";
-  let newTitleText = "称号：見習いオタク";
+let baseTitleClass = "title-default";
+let baseTitleText = "称号：見習いオタク";
 
-  if (percentAll >= 100) {
-    newTitleClass = "title-rainbow";
-    newTitleText = "称号：蓮ノ空の生徒";
-  } else if (percentAll >= 90) {
-    newTitleClass = "title-gold";
-    newTitleText = "称号：せーはすマスター";
-  } else if (percentAll >= 60) {
-    newTitleClass = "title-silver";
-    newTitleText = "称号：上級オタク";
-  } else if (percentAll >= 30) {
-    newTitleClass = "title-green";
-    newTitleText = "称号：中級オタク";
-  } else if (percentAll >= 1) {
-    newTitleClass = "title-default";
-    newTitleText = "称号：初級オタク";
-  }
-
-  // クラス変更があった場合のみアニメーション
-  if (previousTitleRank !== newTitleClass) {
-  if (previousTitleRank) {
-    titleEl.classList.remove(previousTitleRank);
-  }
-  titleEl.classList.remove("title-animate");
-  void titleEl.offsetWidth;
-  titleEl.classList.add("title-animate");
-  titleEl.classList.add(newTitleClass);
-  previousTitleRank = newTitleClass;
-}
- else {
-    // 変化がないときはそのまま
-    titleEl.classList.remove("title-animate");
-    titleEl.classList.add(newTitleClass);
-  }
-
-  titleEl.textContent = newTitleText;
+// 基本称号の判定（達成率に応じて）
+if (percentAll >= 100) {
+  baseTitleClass = "title-rainbow";
+  baseTitleText = "称号：蓮ノ空の生徒";
+} else if (percentAll >= 90) {
+  baseTitleClass = "title-gold";
+  baseTitleText = "称号：せーはすマスター";
+} else if (percentAll >= 60) {
+  baseTitleClass = "title-silver";
+  baseTitleText = "称号：上級オタク";
+} else if (percentAll >= 30) {
+  baseTitleClass = "title-green";
+  baseTitleText = "称号：中級オタク";
+} else if (percentAll >= 1) {
+  baseTitleClass = "title-default";
+  baseTitleText = "称号：初級オタク";
 }
 
+const pushTitles = [
+  { level: 'hard', index: 9,  label: '吟子推し',   color: '#80d8ff' },
+  { level: 'hard', index:10,  label: '姫芽推し',   color: '#b39ddb' },
+  { level: 'hard', index:11,  label: '小鈴推し',   color: '#fff176' },
+  { level: 'extra', index:3,  label: 'さやか推し', color: '#64b5f6' },
+  { level: 'extra', index:4,  label: '梢推し',     color: '#aed581' },
+  { level: 'extra', index:5,  label: '花帆推し',   color: '#ffb74d' },
+  { level: 'extra', index:6,  label: '慈推し',     color: '#bdbdbd' },
+  { level: 'extra', index:7,  label: '綴理推し',   color: '#ef5350' },
+  { level: 'extra', index:8,  label: '瑠璃乃推し', color: '#f48fb1' },
+  { level: 'extra', index:9,  label: 'セラス推し', color: '#e57373' },
+  { level: 'extra', index:10, label: '泉推し',     color: '#64b5f6' },
+];
+
+let extraTitleSpans = "";
+
+pushTitles.forEach(p => {
+  const mission = allMissions[p.level]?.[p.index];
+  if (mission?.checked) {
+    extraTitleSpans += `<span class="extra-title" style="background-color: ${p.color}">${p.label}</span> `;
+  }
+});
+
+
+// アニメーション用クラスの付け替え
+if (previousTitleRank !== baseTitleClass) {
+  titleEl.className = ''; // 一度リセット
+  titleEl.classList.add(baseTitleClass, "title-animate");
+  previousTitleRank = baseTitleClass;
+} else {
+  titleEl.className = baseTitleClass;
+}
+
+   // 表示を更新（innerHTMLで複数タイトル）
+   titleEl.textContent = baseTitleText; // ←定義済みのオタク称号テキスト
+
+    }
     function renderList() {
       updateFilterStatus();
       const list = document.getElementById('mission-list');
@@ -488,7 +593,57 @@
     }
   
     renderList();
+
+    function openPushModal() {
+  const modal = document.getElementById("pushModal");
+  const content = document.getElementById("pushModalContent");
+  content.innerHTML = ""; // 一度リセット
+
+  const pushTitles = [
+    { level: 'extra', index:5, label: '花帆推し',   color: '#ffb74d' },
+    { level: 'extra', index:4, label: '梢推し',     color: '#aed581' },
+    { level: 'hard', index: 9,  label: '吟子推し',   color: '#80d8ff' },
+    { level: 'extra', index:3, label: 'さやか推し', color: '#64b5f6' },
+    { level: 'extra', index:7, label: '綴理推し',   color: '#ef5350' },
+    { level: 'hard', index:11, label: '小鈴推し',   color: '#fff176' },
+    { level: 'extra', index:8, label: '瑠璃乃推し', color: '#f48fb1' },
+    { level: 'extra', index:6, label: '慈推し',     color: '#bdbdbd' },
+    { level: 'hard', index:10, label: '姫芽推し',   color: '#b39ddb' },
+    { level: 'extra', index:9, label: 'セラス推し', color: '#e57373' },
+    { level: 'extra', index:10,label: '泉推し',     color: '#64b5f6' },
+  ];
+
+  pushTitles.forEach(p => {
+    const mission = allMissions[p.level]?.[p.index];
+    const span = document.createElement("span");
+    span.className = "extra-title";
+    span.textContent = p.label;
+    span.style.backgroundColor = p.color;
+
+    if (!mission?.checked) {
+      span.classList.add("locked"); // 未達成なら透明＆ロック風に
+    }
+
+    content.appendChild(span);
+  });
+
+  modal.style.display = "block";
+}
+
+function closePushModal() {
+  document.getElementById("pushModal").style.display = "none";
+}
+
   </script>  
   
+  <!-- 推し称号モーダル -->
+<div id="pushModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closePushModal()">&times;</span>
+    <h3>★獲得した特別称号</h3>
+    <div id="pushModalContent"></div>
+  </div>
+</div>
+
 </body>
 </html>
