@@ -240,64 +240,85 @@
   100% { transform: scale(1); }
 }
 
-.extra-title {
-  background: linear-gradient(to right, #ffc0cb, #ff69b4);
-  color: white;
-  font-size: 0.9em;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 8px;
-  display: inline-block;
-}
-
-.extra-title.locked {
-  opacity: 0.3; /* 透明にする */
-  filter: grayscale(60%); /* モノクロっぽくする（お好みで） */
-  color: #fff;
-}
-
 .modal {
-  display: none;
   position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.6);
 }
 
 .modal-content {
   background-color: #fffdf6;
-  margin: 10% auto;
   padding: 20px;
-  border: 2px solid #888;
-  border-radius: 10px;
+  border-radius: 12px;
+  max-width: 300px;
   width: 90%;
-  max-width: 400px;
+  position: relative;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
   text-align: center;
 }
 
-.modal-content h3 {
-  margin-bottom: 15px;
-}
-
-.modal-content .extra-title {
-  display: inline-block;
-  margin: 6px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  color: white;
-  font-size: 0.9em;
-}
-
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 24px;
-  font-weight: bold;
+.modal-content .close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 1.4rem;
   cursor: pointer;
+}
+
+.modal .close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.extra-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  margin: 6px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #fff;
+  background-color: gray; /* JSで上書きされる */
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.extra-title:hover {
+  transform: scale(1.05);
+}
+
+
+.extra-title.locked {
+  background: repeating-linear-gradient(
+    45deg,
+    #333,
+    #333 10px,
+    #444 10px,
+    #444 20px
+  );
+  color: #bbb;
+  opacity: 0.5;
+  position: relative;
+}
+
+.extra-title.locked::before {
+  content: "🔒";
+  position: absolute;
+  font-size: 1.1em;
+  color: #fff;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
     @media (max-width: 600px) {
@@ -351,7 +372,7 @@
   </div>
 
   <div class="push-button-container">
-    <button id="openPushModal" onclick="openPushModal()">特別称号を見る</button>
+    <button onclick="openPushModal()">特別称号を見る</button>
   </div>
   
   <div id="progress-container">
@@ -614,36 +635,61 @@ if (previousTitleRank !== baseTitleClass) {
   ];
 
   pushTitles.forEach(p => {
-    const mission = allMissions[p.level]?.[p.index];
-    const span = document.createElement("span");
-    span.className = "extra-title";
-    span.textContent = p.label;
-    span.style.backgroundColor = p.color;
+  const mission = allMissions[p.level]?.[p.index];
+  const span = document.createElement("span");
+  span.className = "extra-title";
+  span.textContent = p.label;
+  span.style.backgroundColor = p.color;
 
-    if (!mission?.checked) {
-      span.classList.add("locked"); // 未達成なら透明＆ロック風に
-    }
+  if (!mission?.checked) {
+    span.classList.add("locked");
+  }
 
-    content.appendChild(span);
-  });
+  span.onclick = () => {
+    openPushInfoModal(p.label, mission?.title || "？？？");
+  };
 
-  modal.style.display = "block";
+  content.appendChild(span);
+});
+
+modal.style.display = "flex"
+ }
+
+function openPushInfoModal(label, missionTitle) {
+  const modal = document.getElementById("pushInfoModal");
+  const text = document.getElementById("pushInfoText");
+  text.textContent = `「${missionTitle}」をクリアする。`;
+  modal.style.display = "flex";
 }
 
-function closePushModal() {
-  document.getElementById("pushModal").style.display = "none";
+function closePushInfoModal() {
+  document.getElementById("pushInfoModal").style.display = "none";
 }
 
   </script>  
   
-  <!-- 推し称号モーダル -->
-<div id="pushModal" class="modal">
+<!-- 特別称号モーダル -->
+<div id="pushModal" class="modal" style="display: none;">
   <div class="modal-content">
-    <span class="close" onclick="closePushModal()">&times;</span>
-    <h3>★獲得した特別称号</h3>
-    <div id="pushModalContent"></div>
+    <span class="close" onclick="closePushModal()">×</span>
+    <h2>取得した特別称号</h2>
+    <div id="pushModalContent" style="margin-top: 10px;"></div>
   </div>
 </div>
 
+<!-- 推し称号の条件表示モーダル -->
+<div id="pushInfoModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close" onclick="closePushInfoModal()">×</span>
+    <p id="pushInfoText"></p>
+  </div>
+</div>
+
+<script>
+  function closePushModal() {
+    document.getElementById("pushModal").style.display = "none";
+  }
+  </script>
+  
 </body>
 </html>
