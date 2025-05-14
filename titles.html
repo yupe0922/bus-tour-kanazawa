@@ -11,16 +11,71 @@
       margin: 0;
       padding: 20px;
       background: #fffdf6;
-      color: #333;
       background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
       background-repeat: repeat;
-      background-size: auto;
       color: #3e3e3e;
     }
 
-    h1 {
+    header {
+      background-color: #fffdf6;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
       text-align: center;
+    }
+
+    h1 {
       margin-bottom: 20px;
+    }
+
+    h2{
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 10px;
+      text-decoration: none;
+      background: #eee;
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: #333;
+      border: 1px solid #aaa;
+    }
+
+    .back-button:hover {
+      background: #ddd;
+    }
+
+    .otaku-rank-container {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    #title {
+      font-weight: bold;
+      font-size: 1.2em;
+      padding: 8px 16px;
+      border-radius: 10px;
+      color: white;
+      display: inline-block;
+      background-color: #666;
+      transition: background 0.5s ease;
+    }
+
+    .title-default { background-color: #666; }
+    .title-green { background-color: #4caf50; }
+    .title-silver { background: linear-gradient(135deg, #ccc, #aaa); }
+    .title-gold { background: linear-gradient(135deg, gold, orange); }
+    .title-rainbow {
+      border: 3px solid transparent;
+      background-image: linear-gradient(black, black),
+        linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
     .title-grid {
@@ -62,7 +117,7 @@
     }
 
     .locked::after {
-      content: "🔒";
+      content: "";
       position: absolute;
       font-size: 1.5rem;
       top: 50%;
@@ -71,28 +126,12 @@
       pointer-events: none;
     }
 
-    .back-button {
-      display: inline-block;
-      margin-bottom: 20px;
-      text-decoration: none;
-      background: #eee;
-      padding: 8px 16px;
-      border-radius: 8px;
-      color: #333;
-      border: 1px solid #aaa;
-    }
-
-    .back-button:hover {
-      background: #ddd;
-    }
-
-    /* モーダル */
     .modal {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background-color: rgba(0, 0, 0, 0.6);
-      display: flex;
+      display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
@@ -119,20 +158,37 @@
   </style>
 </head>
 <body>
-  <a class="back-button" href="index.html">← トップに戻る</a>
-  <h1>称号コレクション</h1>
 
-  <div class="title-grid" id="titleGrid"></div>
+  <header>
+    <a href="index.html" class="back-button">トップへ戻る</a>
+    <h1>～ 称号コレクション ～</h1>
+  </header>
 
-  <!-- 条件表示モーダル -->
-  <div id="titleModal" class="modal" style="display: none;">
+  <div class="otaku-rank-container">
+    <div id="title" class="title-default">称号：見習いオタク</div>
+  </div>
+
+  <h2>～ 推し称号 ～</h2>
+  <div id="titleGrid" class="title-grid"></div>
+
+  <!-- モーダル -->
+  <div id="titleModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeTitleModal()">×</span>
       <div id="titleModalText"></div>
     </div>
   </div>
 
+  <h2>～ 特殊称号 ～</h2>
+
   <script>
+    // 現在のオタク称号を表示
+    const otakuTitle = localStorage.getItem("currentOtakuTitle") || "称号：見習いオタク";
+    const otakuClass = localStorage.getItem("currentOtakuClass") || "title-default";
+    document.getElementById("title").textContent = otakuTitle;
+    document.getElementById("title").className = otakuClass;
+
+    // 称号データの読み込み
     const allMissions = JSON.parse(localStorage.getItem('missions')) || {};
 
     const pushTitles = [

@@ -549,6 +549,9 @@ if (previousTitleRank !== baseTitleClass) {
 
    // 表示を更新（innerHTMLで複数タイトル）
    titleEl.textContent = baseTitleText; // ←定義済みのオタク称号テキスト
+   // オタク称号を保存する
+   localStorage.setItem('currentOtakuTitle', baseTitleText);
+   localStorage.setItem('currentOtakuClass', baseTitleClass);
 
     }
     function renderList() {
