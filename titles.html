@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>称号コレクション</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Noto Serif JP', serif;
+      margin: 0;
+      padding: 20px;
+      background: #fffdf6;
+      color: #333;
+      background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-repeat: repeat;
+      background-size: auto;
+      color: #3e3e3e;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .title-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .title-card {
+      min-width: 120px;
+      text-align: center;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      color: white;
+      position: relative;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .title-card:hover {
+      transform: scale(1.05);
+    }
+
+    .locked {
+      background: repeating-linear-gradient(
+        45deg,
+        #444,
+        #444 10px,
+        #555 10px,
+        #555 20px
+      );
+      color: #ccc;
+    }
+
+    .locked::after {
+      content: "🔒";
+      position: absolute;
+      font-size: 1.5rem;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      background: #eee;
+      padding: 8px 16px;
+      border-radius: 8px;
+      color: #333;
+      border: 1px solid #aaa;
+    }
+
+    .back-button:hover {
+      background: #ddd;
+    }
+
+    /* モーダル */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-content {
+      background-color: #fffdf6;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 300px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .modal-content .close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <a class="back-button" href="index.html">← トップに戻る</a>
+  <h1>称号コレクション</h1>
+
+  <div class="title-grid" id="titleGrid"></div>
+
+  <!-- 条件表示モーダル -->
+  <div id="titleModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeTitleModal()">×</span>
+      <div id="titleModalText"></div>
+    </div>
+  </div>
+
+  <script>
+    const allMissions = JSON.parse(localStorage.getItem('missions')) || {};
+
+    const pushTitles = [
+      { level: 'extra', index:5,  label: '花帆推し',   color: '#ffb74d' },
+      { level: 'extra', index:4,  label: '梢推し',     color: '#aed581' },
+      { level: 'hard', index: 9,  label: '吟子推し',   color: '#80d8ff' },
+      { level: 'extra', index:3,  label: 'さやか推し', color: '#64b5f6' },
+      { level: 'extra', index:7,  label: '綴理推し',   color: '#ef5350' },
+      { level: 'hard', index:11,  label: '小鈴推し',   color: '#fff176' },
+      { level: 'extra', index:8,  label: '瑠璃乃推し', color: '#f48fb1' },
+      { level: 'extra', index:6,  label: '慈推し',     color: '#bdbdbd' },
+      { level: 'hard', index:10,  label: '姫芽推し',   color: '#b39ddb' },
+      { level: 'extra', index:9,  label: 'セラス推し', color: '#e57373' },
+      { level: 'extra', index:10, label: '泉推し',     color: '#64b5f6' },
+    ];
+
+    const grid = document.getElementById("titleGrid");
+
+    pushTitles.forEach(p => {
+      const mission = allMissions[p.level]?.[p.index];
+      const isUnlocked = mission?.checked;
+
+      const card = document.createElement("div");
+      card.className = "title-card";
+      card.textContent = isUnlocked ? p.label : "？？？";
+      card.style.backgroundColor = isUnlocked ? p.color : "#555";
+
+      if (!isUnlocked) {
+        card.classList.add("locked");
+      }
+
+      card.onclick = () => {
+        const condition = mission?.title || "？？？";
+        const text = isUnlocked
+          ? `「${condition}」をクリアして取得済みです。`
+          : `「${condition}」をクリアする。`;
+        openTitleModal(text);
+      };
+
+      grid.appendChild(card);
+    });
+
+    function openTitleModal(text) {
+      document.getElementById("titleModalText").textContent = text;
+      document.getElementById("titleModal").style.display = "flex";
+    }
+
+    function closeTitleModal() {
+      document.getElementById("titleModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
