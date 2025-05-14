@@ -321,6 +321,41 @@
   transform: translate(-50%, -50%);
 }
 
+.hamburger {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.menu {
+  display: none;
+  position: absolute;
+  text-align: left;
+  top: 50px;
+  left: 16px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 999;
+}
+
+.menu a {
+  display: block;
+  padding: 6px 10px;
+  color: #333;
+  text-decoration: none;
+}
+
+.menu a:hover {
+  background: #f0f0f0;
+}
+
+
     @media (max-width: 600px) {
       header {
         flex-direction: column;
@@ -347,9 +382,15 @@
 </head>
 <body>
   <header>
-    <a href="index.html" class="back-button">トップへ戻る</a>
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
     <h1>ミッションだけ見る</h1>
+    <nav id="menu" class="menu">
+      <a href="index.html">▶トップへ戻る</a>
+      <a href="map-only.html">▶地図だけ見る</a>
+      <a href="titles.html">▶称号を見る</a>
+    </nav>
   </header>
+  
 
   <div class="topbar">
     <select id="difficultySelect" onchange="setDifficulty(this.value)">
@@ -664,6 +705,21 @@ function openPushInfoModal(label, missionTitle) {
 function closePushInfoModal() {
   document.getElementById("pushInfoModal").style.display = "none";
 }
+
+
+function toggleMenu() {
+    const menu = document.getElementById("menu");
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+  }
+
+  // クリック外で閉じる処理（オプション）
+  document.addEventListener('click', function(event) {
+    const menu = document.getElementById("menu");
+    const button = document.querySelector('.hamburger');
+    if (!menu.contains(event.target) && !button.contains(event.target)) {
+      menu.style.display = 'none';
+    }
+  });
 
   </script>  
   
