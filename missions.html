@@ -372,7 +372,7 @@
   </div>
   
   <div id="progress-container">
-    <div id="title" class="title-default">称号：見習いオタク</div> 
+    <div id="title" class="title-default">称号：新入り</div> 
     <div id="filter-progress">（0 / 0、達成率：0%）</div>
     <div class="progress-bar">
       <div id="progress-fill"></div>
@@ -499,19 +499,19 @@ let baseTitleText = "称号：見習いオタク";
 // 基本称号の判定（達成率に応じて）
 if (percentAll >= 100) {
   baseTitleClass = "title-rainbow";
-  baseTitleText = "称号：蓮ノ空の生徒";
-} else if (percentAll >= 90) {
+  baseTitleText = "称号：蓮ノ空のこと好き好きクラブ";
+} else if (percentAll >= 80) {
   baseTitleClass = "title-gold";
-  baseTitleText = "称号：せーはすマスター";
+  baseTitleText = "称号：せーはす勢";
 } else if (percentAll >= 60) {
   baseTitleClass = "title-silver";
-  baseTitleText = "称号：上級オタク";
+  baseTitleText = "称号：オタクの鑑";
 } else if (percentAll >= 30) {
   baseTitleClass = "title-green";
-  baseTitleText = "称号：中級オタク";
+  baseTitleText = "称号：駆け出しオタク";
 } else if (percentAll >= 1) {
   baseTitleClass = "title-default";
-  baseTitleText = "称号：初級オタク";
+  baseTitleText = "称号：オタクのタマゴ";
 }
 
 const pushTitles = [
